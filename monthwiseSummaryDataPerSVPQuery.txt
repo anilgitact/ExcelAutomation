@@ -1,0 +1,65 @@
+TRANSFORM MAX(VALU) AS MaxValue 
+SELECT
+   seniorleader,
+   SVP 
+FROM
+   (
+      SELECT
+         svd.seniorleader,
+         svd.SVP,
+         LEFTWA(ROVReportDate, 2) AS MONTH1,
+         'HeadCount' AS TYPE1,
+         MAX(svd.TotalHeadCount) as VALU 
+      FROM
+         SummaryViewData svd 
+         LEFT JOIN
+            (
+               SELECT
+                  seniorleader,
+                  SVP,
+                  MAX(ROVReportDate) as ROVDATE 
+               FROM
+                  SummaryViewData 
+               GROUP BY
+                  seniorleader,
+                  SVP,
+                  LEFTWA(ROVReportDate, 2) 
+            )
+            vdate 
+            ON vdate.seniorleader = svd.seniorleader 
+            and vdate.SVP = svd.SVP 
+            and vdate.ROVDATE = svd.ROVReportDate 
+      GROUP BY
+         svd.seniorleader,
+         svd.SVP,
+         svd.ROVReportDate 
+      UNION
+      SELECT
+         seniorleader,
+         SVP,
+         LEFTWA(ROVReportDate, 2) AS Month1,
+         'Joiners' AS Type1,
+         SUM(SummaryViewData.TotalJoiners) as VALU 
+      FROM
+         SummaryViewData 
+      GROUP BY
+         seniorleader,
+         SVP,
+         LEFTWA(ROVReportDate, 2) 
+      UNION
+      SELECT
+         seniorleader,
+         SVP,
+         LEFTWA(ROVReportDate, 2) AS Month1,
+         'Leavers' AS Type1,
+         SUM(SummaryViewData.TotalLeavers) as VALU 
+      FROM
+         SummaryViewData 
+      GROUP BY
+         seniorleader,
+         SVP,
+         LEFTWA(ROVReportDate, 2) 
+   )
+GROUP BY
+   seniorleader,
+   SVP pivot Month1 + '.' + type1]
